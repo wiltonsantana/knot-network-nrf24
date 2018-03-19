@@ -15,6 +15,7 @@ if (len(args) < 1):
         print("")
         print("  info")
         print("  powered [on/off]")
+	print("  add [Address] [Name] [Id]")
         print("  remove [device path]")
         sys.exit(1)
 
