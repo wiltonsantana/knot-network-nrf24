@@ -32,6 +32,6 @@ struct settings {
 
 	bool detach;
 	bool help;
-} settings;
+};
 
 int settings_parse(int argc, char *argv[], struct settings *settings);
