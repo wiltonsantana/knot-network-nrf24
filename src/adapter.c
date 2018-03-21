@@ -598,8 +598,8 @@ static void radio_stop(void)
 
 static void store_device(const char *addr, uint64_t id, const char *name)
 {
-	storage_write_key_string(settings.nodes_path, addr, "name", name);
-	storage_write_key_uint64(settings.nodes_path, addr, "id", id);
+	storage_write_key_string(settings.nodes_path, addr, "Name", name);
+	storage_write_key_uint64(settings.nodes_path, addr, "Id", id);
 }
 
 static struct l_dbus_message *method_add_device(struct l_dbus *dbus,
