@@ -309,6 +309,14 @@ done:
 	}
 }
 
+static bool offline_foreach(const void *key, void *value, void *user_data)
+{
+	if (device_get_last_seen(value) - hal_time_ms() > 5000)
+		return false;
+
+	return true;
+}
+
 static bool paging_foreach(const void *key, void *value, void *user_data)
 {
 	const struct nrf24_mac *addr = key;
@@ -464,6 +472,8 @@ static int8_t evt_presence(struct mgmt_nrf24_header *mhdr, ssize_t rbytes)
 		return 0;
 	}
 
+	device_set_last_seen(device, hal_time_ms());
+
 	/* Paired/Known device? */
 	if (!device_is_paired(device))
 		return 0;
@@ -527,8 +537,10 @@ static void mgmt_idle_read(struct l_idle *idle, void *user_data)
 		return;
 
 	/* Nothing to read? */
-	if (rbytes == -EAGAIN)
+	if (rbytes == -EAGAIN) {
+		l_hashmap_foreach_remove(adapter.offline_list, offline_foreach, NULL);
 		return;
+	}
 
 	/* Return/ignore if it is not an event? */
 	if (!(mhdr->opcode & 0x0200))
@@ -562,7 +574,7 @@ static int radio_init(uint8_t channel, const struct nrf24_mac *addr)
 			.channel = channel,
 			.name = "nrf0" };
 	int err;
-
+return 0;
 	err = hal_comm_init("NRF0", &config);
 	if (err < 0) {
 		hal_log_error("Cannot init NRF0 radio. (%d)", err);
