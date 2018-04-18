@@ -64,10 +64,18 @@ int manager_start(void)
 	 * Priority order: 1) command line 2) config file.
 	 * If the user does not provide channel at command line (or channel is
 	 * invalid), switch to channel informed at config file. 76 is the
-	 * default vale if channel in not informed in the config file.
+	 * default vale if channel in not informed in the config file. If in
+	 * avoid interference mode, 85 is the default channel if channel in not
+	 * informed in the config file or channel set is less than 85.
 	 */
-	if (settings.channel < 0 || settings.channel > 125)
-		settings.channel = cfg_channel;
+	if (!settings.interference) {
+		if (settings.channel < 0 || settings.channel > 125)
+			settings.channel = cfg_channel;
+	} else {
+		cfg_channel = 85;
+		if (settings.channel < 85 || settings.channel > 125)
+			settings.channel = cfg_channel;
+	}
 
 	/*
 	 * Use TX Power from configuration file if it has not been passed

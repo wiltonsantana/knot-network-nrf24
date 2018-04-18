@@ -31,6 +31,7 @@ struct settings {
 	int dbm;
 
 	bool detach;
+	bool interference;
 	bool help;
 } settings;
 

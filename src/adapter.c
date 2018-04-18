@@ -598,7 +598,8 @@ static void mgmt_timeout_cb(struct l_timeout *timeout, void *user_data)
 	l_timeout_modify(mgmt_timeout, 5);
 }
 
-static int radio_init(uint8_t channel, const struct nrf24_mac *addr)
+static int radio_init(uint8_t channel, const struct nrf24_mac *addr,
+		      bool interference)
 {
 	const struct nrf24_config config = {
 			.mac = *addr,
@@ -606,7 +607,11 @@ static int radio_init(uint8_t channel, const struct nrf24_mac *addr)
 			.name = "nrf0" };
 	int err;
 
-	err = hal_comm_init("NRF0", &config);
+	if (!interference)
+		err = hal_comm_init("NRF0", &config);
+	else
+		err = hal_comm_init_interfered("NRF0", &config);
+
 	if (err < 0) {
 		hal_log_error("Cannot init NRF0 radio. (%d)", err);
 		return err;
@@ -768,7 +773,7 @@ int adapter_start(const struct nrf24_mac *mac)
 		tcp_port = settings.port;
 	}
 
-	ret = radio_init(settings.channel, mac);
+	ret = radio_init(settings.channel, mac, settings.interference);
 	if (ret < 0)
 		return ret;
 
