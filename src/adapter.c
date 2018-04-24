@@ -598,11 +598,13 @@ static void mgmt_timeout_cb(struct l_timeout *timeout, void *user_data)
 	l_timeout_modify(mgmt_timeout, 5);
 }
 
-static int radio_init(uint8_t channel, const struct nrf24_mac *addr)
+static int radio_init(uint8_t channel, uint8_t data_channel,
+		      const struct nrf24_mac *addr)
 {
 	const struct nrf24_config config = {
 			.mac = *addr,
 			.channel = channel,
+			.data_channel = data_channel,
 			.name = "nrf0" };
 	int err;
 
@@ -768,7 +770,7 @@ int adapter_start(const struct nrf24_mac *mac)
 		tcp_port = settings.port;
 	}
 
-	ret = radio_init(settings.channel, mac);
+	ret = radio_init(settings.channel, settings.data_channel, mac);
 	if (ret < 0)
 		return ret;
 

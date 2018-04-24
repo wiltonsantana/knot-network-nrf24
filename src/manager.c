@@ -39,7 +39,7 @@
 
 int manager_start(void)
 {
-	int cfg_channel = 76, cfg_dbm = 0;
+	int cfg_channel = 76, cfg_dbm = 0, err = 0, channel = 0, dt_channel = 255;
 	struct nrf24_mac mac = {.address.uint64 = 0};
 	char *mac_str;
 
@@ -66,6 +66,26 @@ int manager_start(void)
 	 * invalid), switch to channel informed at config file. 76 is the
 	 * default vale if channel in not informed in the config file.
 	 */
+
+	err = storage_read_key_int(settings.config_path, "Radio",
+					   "Channel", &channel);
+	if (err > 0)
+		settings.channel = channel;
+
+	if (settings.interf) {
+		cfg_channel = 86;
+		dt_channel = 96;
+
+		err = storage_read_key_int(settings.config_path, "Radio",
+					   "DataChannel", &channel);
+
+		if (err > 0)
+			settings.data_channel = channel;
+
+		if (settings.data_channel < 0 || settings.data_channel > 125)
+			settings.data_channel = dt_channel;
+	}
+
 	if (settings.channel < 0 || settings.channel > 125)
 		settings.channel = cfg_channel;
 
