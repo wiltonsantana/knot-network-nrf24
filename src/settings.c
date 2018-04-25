@@ -37,6 +37,7 @@ static const char *spi = "/dev/spidev0.0";
 static int channel = -1;
 static int dbm = -255;
 static bool detach = true;
+static bool interf = false;
 static bool help = false;
 
 static void usage(void)
@@ -53,6 +54,7 @@ static void usage(void)
 		"\t-C, --channel      Broadcast channel\n"
 		"\t-t, --tx           TX power: transmition signal strength in dBm\n"
 		"\t-n, --nodetach     Logging in foreground\n"
+		"\t-i, --interference Avoid Wi-Fi interference mode\n"
 		"\t-H, --help         Show help options\n");
 }
 
@@ -65,6 +67,7 @@ static const struct option main_options[] = {
 	{ "channel",		required_argument,	NULL, 'C' },
 	{ "tx",			required_argument,	NULL, 't' },
 	{ "nodetach",		no_argument,		NULL, 'n' },
+	{ "interference",	no_argument,		NULL, 'i' },
 	{ "help",		no_argument,		NULL, 'H' },
 	{ }
 };
@@ -75,7 +78,7 @@ static int parse_args(int argc, char *argv[], struct settings *settings)
 	int opt;
 
 	for (;;) {
-		opt = getopt_long(argc, argv, "c:f:h:p:s:C:t:nH", main_options, NULL);
+		opt = getopt_long(argc, argv, "c:f:h:p:s:C:t:niH", main_options, NULL);
 		if (opt < 0)
 			break;
 
@@ -103,6 +106,9 @@ static int parse_args(int argc, char *argv[], struct settings *settings)
 			break;
 		case 'n':
 			settings->detach = false;
+			break;
+		case 'i':
+			settings->interf = true;
 			break;
 		case 'H':
 			usage();
@@ -161,6 +167,7 @@ int settings_parse(int argc, char *argv[], struct settings *settings)
 	settings->channel = channel;
 	settings->dbm = dbm;
 	settings->detach = detach;
+	settings->interf = interf;
 	settings->help = help;
 
 	if (!parse_args(argc, argv, settings))
