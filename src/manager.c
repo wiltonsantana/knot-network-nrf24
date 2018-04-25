@@ -39,7 +39,7 @@
 
 int manager_start(void)
 {
-	int cfg_channel = 76, cfg_dbm = 0;
+	int cfg_channel = 76, cfg_dbm = 0, dt_channel = -1;
 	struct nrf24_mac mac = {.address.uint64 = 0};
 	char *mac_str;
 
@@ -59,6 +59,14 @@ int manager_start(void)
 	}
 
 	l_free(mac_str);
+
+	if (settings.interf) {
+		cfg_channel = 86;
+		storage_read_key_int(settings.config_path, "Radio", "DataChannel",
+				     &dt_channel);
+	}
+
+	settings.data_channel = dt_channel;
 
 	/*
 	 * Priority order: 1) command line 2) config file.
