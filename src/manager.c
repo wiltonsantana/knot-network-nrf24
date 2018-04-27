@@ -60,6 +60,9 @@ int manager_start(void)
 
 	l_free(mac_str);
 
+	if (settings.interf)
+		cfg_channel = 86;
+
 	/*
 	 * Priority order: 1) command line 2) config file.
 	 * If the user does not provide channel at command line (or channel is
