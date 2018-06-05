@@ -33,24 +33,99 @@
 #include "storage.h"
 #include "settings.h"
 
-static int settings_to_file(const char *pathname, struct l_settings *settings)
-{
-	char *res;
-	size_t res_len;
+struct storage {
+	char *pathname;
 	int fd;
+};
+
+static struct l_hashmap *storage_list;
+
+static void storage_free(struct storage *storage)
+{
+	l_free(storage->pathname);
+	l_free(storage);
+}
+int storage_open_file(const char *pathname)
+{
 	int err = 0;
+	int fd = -1;
+	struct storage *storage;
 
-	res = l_settings_to_data(settings, &res_len);
-
-	fd = open(pathname, O_WRONLY | O_TRUNC);
+	fd = open(pathname, O_WRONLY);
 	if (fd < 0) {
 		err = -errno;
 		goto failure;
 	}
 
-	if (write(fd, res, res_len) < 0)
+	storage = l_new(struct storage, 1);
+	storage->pathname = l_strdup(pathname);
+	storage->fd = fd;
+
+	l_hashmap_insert(storage_list, pathname, storage);
+
+failure:
+	return err;
+}
+
+int storage_close_file(const char *pathname)
+{
+	int err = 0;
+	struct storage *storage;
+
+	storage = l_hashmap_lookup(storage_list, pathname);
+	if(!storage)
+		return -ENOENT;
+
+	err = close(storage->fd);
+	if (err > 0)
+		goto failure;
+
+	storage_free(storage);
+
+failure:
+	return -err;
+}
+
+int storage_start(void)
+{
+	int err = 0;
+
+	storage_list = l_hashmap_string_new();
+
+	err = storage_open_file(settings.config_path);
+	if (err < 0)
+		return err;
+
+	err = storage_open_file(settings.nodes_path);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+
+void storage_stop(void)
+{
+	l_hashmap_foreach(storage_list, (l_hashmap_foreach_func_t) storage_close_file, NULL);
+}
+
+static int settings_to_file(const char *pathname, struct l_settings *settings)
+{
+	char *res;
+	size_t res_len;
+	off_t offset = 0;
+	int err = 0;
+	struct storage *storage;
+
+	res = l_settings_to_data(settings, &res_len);
+	storage = l_hashmap_lookup(storage_list, pathname);
+	if (!storage) {
+		err = storage_open_file(pathname);
+		if (err < 0)
+			goto failure;
+	}
+
+	if (pwrite(storage->fd, res, res_len, offset) < 0)
 		err = -errno;
-	close(fd);
 
 failure:
 	l_free(res);

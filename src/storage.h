@@ -46,3 +46,11 @@ int storage_read_key_uint64(const char *pathname, const char *group,
 void store_device(const char *addr, const char *id, const char *name);
 
 int storage_remove_group(const char *pathname, const char *group);
+
+int storage_open_file(const char *pathname);
+
+int storage_close_file(const char *pathname);
+
+int storage_start(void);
+
+void storage_stop(void);
