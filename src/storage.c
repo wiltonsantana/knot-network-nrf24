@@ -33,6 +33,39 @@
 #include "storage.h"
 #include "settings.h"
 
+struct storage {
+	const char *pathname;
+	int fd;
+};
+
+static struct l_hashmap *storage_list;
+
+int storage_start(void)
+{
+       int err = -1;
+	int fd = 0;
+	struct storage *storage;
+
+       storage_list = l_hashmap_string_new();
+
+	fd = open(settings.config_path, O_WRONLY | O_TRUNC);
+       //err = storage_open_file(settings.config_path);
+       if (fd < 0)
+               return err;
+
+	storage = l_new(struct storage, 1);
+	storage->pathname = l_strdup(settings.config_path);
+	storage->fd = fd;
+
+	l_hashmap_insert(storage_list, settings.config_path, storage);
+
+       //err = storage_open_file(settings.nodes_path);
+       //if (err < 0)
+         //      return err;
+
+       return 0;
+}
+
 static int settings_to_file(const char *pathname, struct l_settings *settings)
 {
 	char *res;
